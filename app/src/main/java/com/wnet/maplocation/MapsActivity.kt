@@ -11,7 +11,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.databinding.DataBindingUtil
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -19,7 +18,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.wnet.maplocation.databinding.ActivityMapsBinding
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
@@ -31,8 +29,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
-        val binding: ActivityMapsBinding = DataBindingUtil.setContentView(this, R.layout.activity_maps)
-        
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -157,8 +153,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
             mMap.addCircle(
                 CircleOptions()
                     .center(latLng)
-                    .fillColor(Color.argb(64, 0, 0, 0))
-                    .strokeColor(Color.argb(64, 0, 0, 0))
+                    .fillColor(R.color.lime)
+                    .strokeColor(Color.RED)
                     .strokeWidth(1.0f)
                     .radius(mCurrentLocation!!.accuracy.toDouble())
             )
