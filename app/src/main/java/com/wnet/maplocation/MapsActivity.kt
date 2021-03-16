@@ -51,6 +51,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.uiSettings.isZoomControlsEnabled = false
+        initMap()
+    }
+
+    fun initMap(){
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -60,6 +64,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             checkLocationPermission()
+            return
         }
         mMap.isMyLocationEnabled = true
         mMap.uiSettings.isCompassEnabled = true
@@ -134,9 +139,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
                         ) == PackageManager.PERMISSION_GRANTED)
                     ) {
                         Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show()
+                        initMap()
                     }
                 } else {
-                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Can't use this app without the permission...", Toast.LENGTH_SHORT).show()
+                    ActivityCompat.requestPermissions(
+                        this,
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        1
+                    );
                 }
                 return
             }
