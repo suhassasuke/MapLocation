@@ -8,6 +8,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -18,12 +19,14 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.android.synthetic.main.activity_maps.*
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
 
     private lateinit var mMap: GoogleMap
     private var mCurrentLocation: Location? = null
+    private var mMidLocation: Location? = null
     private lateinit var locationManager: LocationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +57,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
         initMap()
     }
 
-    fun initMap(){
+    fun initMap() {
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -66,33 +69,45 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
             checkLocationPermission()
             return
         }
-        mMap.isMyLocationEnabled = true
+        mMap.isMyLocationEnabled = false
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isMyLocationButtonEnabled = true
         mMap.setOnCircleClickListener {
             Toast.makeText(baseContext, "radius clicked", Toast.LENGTH_LONG).show()
         }
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, this)
-//        mMap.addCircle(
-//            CircleOptions()
-//                .center(LatLng(12.886101,77.626191))
-//                .fillColor(Color.argb(64, 0, 0, 0))
-//                .strokeColor(Color.RED)
-//                .strokeWidth(1.0f)
-//                .radius(10000.0)
-//        )
-        mMap.setOnMapClickListener {
-            val targetLocation = Location("") //provider name is unnecessary
+        mMap.setOnCameraMoveListener {
+            val midLatLng: LatLng = mMap.getCameraPosition().target
+            mMidLocation = Location("")
+            mMidLocation!!.latitude = midLatLng.latitude
+            mMidLocation!!.longitude = midLatLng.longitude
 
-            targetLocation.latitude = it.latitude
-
-            targetLocation.longitude = it.longitude
-            if (getDistanceFromLatLonInKm(mCurrentLocation!!,targetLocation)) {
-                mMap.addMarker(MarkerOptions().position(it))
-            }else{
-                Toast.makeText(baseContext, "Marker OutSide the Radius Not Allowed...", Toast.LENGTH_LONG).show()
+            if (!getDistanceFromLatLonInKm(mCurrentLocation!!, mMidLocation!!)) {
+                val cameraUpdate = CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        mCurrentLocation!!.latitude,
+                        mCurrentLocation!!.longitude
+                    ), 20f
+                )
+                mMap.moveCamera(cameraUpdate)
             }
         }
+//        mMap.setOnMapClickListener {
+//            val targetLocation = Location("") //provider name is unnecessary
+//
+//            targetLocation.latitude = it.latitude
+//
+//            targetLocation.longitude = it.longitude
+//            if (getDistanceFromLatLonInKm(mCurrentLocation!!, targetLocation)) {
+//                mMap.addMarker(MarkerOptions().position(it))
+//            } else {
+//                Toast.makeText(
+//                    baseContext,
+//                    "Marker OutSide the Radius Not Allowed...",
+//                    Toast.LENGTH_LONG
+//                ).show()
+//            }
+//        }
     }
 
     fun getDistanceFromLatLonInKm(loc1: Location, loc2: Location): Boolean {
@@ -108,7 +123,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
 
         val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         val d = R * c; // Distance in km
-        Log.i("Distance in KM", d.toString())
+//        Log.i("Distance in KM", d.toString())
         return d <= (mCurrentLocation!!.accuracy.toDouble() / 1000)
     }
 
@@ -142,7 +157,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
                         initMap()
                     }
                 } else {
-                    Toast.makeText(this, "Can't use this app without the permission...", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        "Can't use this app without the permission...",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     ActivityCompat.requestPermissions(
                         this,
                         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -155,21 +174,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
     }
 
     override fun onLocationChanged(location: Location?) {
-        if (mCurrentLocation == null) {
-            mCurrentLocation = location
-            val latLng = LatLng(location!!.latitude, location.longitude)
-            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 18f)
-            mMap.moveCamera(cameraUpdate)
+//        if (mCurrentLocation == null) {
+        mCurrentLocation = location
+        val latLng = LatLng(location!!.latitude, location.longitude)
+        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 20f)
+        mMap.moveCamera(cameraUpdate)
 //        locationManager.removeUpdates(this)
-            mMap.addCircle(
-                CircleOptions()
-                    .center(latLng)
-                    .fillColor(R.color.lime)
-                    .strokeColor(Color.RED)
-                    .strokeWidth(1.0f)
-                    .radius(mCurrentLocation!!.accuracy.toDouble())
-            )
-        }
+        mMap.clear()
+        mMap.addCircle(
+            CircleOptions()
+                .center(latLng)
+                .fillColor(0x220000FF)
+                .strokeColor(Color.RED)
+                .strokeWidth(5.0f)
+                .radius(mCurrentLocation!!.accuracy.toDouble())
+        )
+        //showing current location marker
+        center_marker.visibility = View.VISIBLE
+//        }
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
